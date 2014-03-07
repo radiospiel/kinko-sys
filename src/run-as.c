@@ -187,9 +187,15 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	if(setreuid(requested_uid, requested_uid)) die("setreuid");
 
 	/*
-	 * reset environment for new user.
+	 * reset environment for new user. Set HOME, USER, USERNAME.
 	 */
 	setenv("TMPDIR", "/tmp", 1);
+	if(requested_user->pw_name && *requested_user->pw_name) {
+		setenv("USER", requested_user->pw_name, 1);
+		setenv("USERNAME", requested_user->pw_name, 1);
+	}
+	if(requested_user->pw_dir && *requested_user->pw_dir)
+		setenv("HOME", requested_user->pw_dir, 1);
 	
 	execv(arg0, argv);
 	die(arg0);

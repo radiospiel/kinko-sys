@@ -80,3 +80,12 @@ it_handles_access_rights_in_subdirs() {
   ! ./bin/kinko-test-server $cat var/test-client-limited/data 
   ! ./bin/kinko-test-server $cat var/test-client/data 
 }
+
+it_modifies_environment() {
+  printenv=$(which printenv)
+
+  test "/tmp" = $(./bin/kinko-test-client $printenv TMPDIR)
+  test "kinko-test-client" = $(./bin/kinko-test-client $printenv USER)
+  homebase=$(cd .. && pwd)/apps
+  test "$homebase/kinko-test-client/var" = $(./bin/kinko-test-client $printenv HOME)
+}

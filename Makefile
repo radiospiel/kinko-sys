@@ -12,6 +12,11 @@ bin/run-as: src/run-as.c
 
 test-accounts: .test-accounts
 
+rm-accounts:
+	rm -f .test-accounts
+	sudo sbin/rmusers $(shell sbin/lsusers kinko-test-*)
+	sudo sbin/rmgroups $(shell sbin/lsgroups kinko-test-*)
+ 
 .test-accounts: Makefile
 	sudo sbin/mkuser kinko-test-server
 	sudo sbin/mkuser kinko-test-server-limited
