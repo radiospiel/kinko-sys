@@ -190,12 +190,47 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	 * reset environment for new user. Set HOME, USER, USERNAME.
 	 */
 	setenv("TMPDIR", "/tmp", 1);
-	if(requested_user->pw_name && *requested_user->pw_name) {
-		setenv("USER", requested_user->pw_name, 1);
-		setenv("USERNAME", requested_user->pw_name, 1);
+
+	const char* pw_name = requested_user->pw_name;
+	if(!*pw_name) pw_name = 0;
+	if(pw_name) {
+		setenv("USER", pw_name, 1);
+		setenv("USERNAME", pw_name, 1);
 	}
-	if(requested_user->pw_dir && *requested_user->pw_dir)
-		setenv("HOME", requested_user->pw_dir, 1);
+
+	const char* homedir = requested_user->pw_dir;
+	if(!*homedir) homedir = 0;
+
+	if(homedir)
+		setenv("HOME", homedir, 1);
+
+	/*
+	 * (re)set ruby environment.
+	 *
+	 * The following code should make sure that the new user will have gems installed
+	 * in a location writable by this user.
+	 * 
+	 * Note that vstrcat leaks memory. This is not a problem because this process
+	 * is exited pretty soon anyways.
+	 */
+
+	char* vstrcat(const char *first, ...);
+
+	if(homedir) {
+		setenv("GEM_HOME", vstrcat(homedir, "/gems", 0), 1);
+		setenv("GEM_PATH", vstrcat(homedir, "/gems", 0), 1);
+		setenv("PATH",     vstrcat(homedir, "/gems/bin:", getenv("PATH"), 0), 1);
+	}
+
+	unsetenv("RUBYLIB");
+	unsetenv("RUBYOPT");
+	unsetenv("BUNDLE_GEMFILE");
+	unsetenv("BUNDLE_BIN_PATH");
+	unsetenv("_ORIGINAL_GEM_PATH"); 
+
+	/*
+	 * (re)set ruby environment.
+	 */
 	
 	execv(arg0, argv);
 	die(arg0);
@@ -240,4 +275,46 @@ void errlog(const char* name, const char* x) {
 void die(const char* what) {
 	perror(what);
 	exit(1);
+}
+
+/*
+ * from http://c-faq.com/~scs/cgi-bin/faqcat.cgi?sec=varargs#varargs1
+ */
+
+#include <stdarg.h>
+
+char* vstrcat(const char *first, ...) {
+	size_t len;
+	char *retbuf;
+	va_list argp;
+	char *p;
+
+	if(first == NULL)
+		return NULL;
+
+	len = strlen(first);
+
+	va_start(argp, first);
+
+	while((p = va_arg(argp, char *)) != NULL) 
+        len += strlen(p);
+
+	va_end(argp);
+
+	retbuf = malloc(len + 1);	/* +1 for trailing \0 */
+
+	if(retbuf == NULL)
+		return NULL;		/* error */
+
+	(void)strcpy(retbuf, first);
+
+	va_start(argp, first);		/* restart; 2nd scan */
+
+	while((p = va_arg(argp, char *)) != NULL) {
+		(void)strcat(retbuf, p);
+	}
+
+	va_end(argp);
+
+	return retbuf;
 }
