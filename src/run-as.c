@@ -12,7 +12,6 @@ void die(const char* what);
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
-#endif
 
 static const char* ExecutablePath() {
 	static char path[PATH_MAX] = { 0 };
@@ -26,6 +25,21 @@ static const char* ExecutablePath() {
 	die("_NSGetExecutablePath");
 	return 0;
 }
+
+#else
+
+static const char* ExecutablePath() {
+	static char path[PATH_MAX] = { 0 };
+
+	if(path[0]) return path;
+
+	if(readlink("/proc/self/exe", path, sizeof(path)) > 0)
+		return path;
+
+	die("/proc/self/exe");
+}
+
+#endif
 
 /*
  * return the basename of a path
