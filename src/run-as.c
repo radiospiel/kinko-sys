@@ -188,11 +188,20 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 		setenv("USERNAME", pw_name, 1);
 	}
 
+	/*
+	 * get passwd's HOME setting for the user. If the HOME setting is
+	 * /var/empty we ignore it.
+	 */
 	const char* homedir = requested_user->pw_dir;
-	if(!*homedir) homedir = 0;
+	if(!*homedir)
+		homedir = 0;
 
-	if(homedir)
+	if(homedir && !strcmp(homedir, "/var/empty"))
+		homedir = 0;
+
+	if(homedir) {
 		setenv("HOME", homedir, 1);
+	}
 
 	/*
 	 * (re)set ruby environment.
