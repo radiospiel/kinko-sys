@@ -64,3 +64,19 @@ it_handles_access_rights() {
   ! ./bin/kinko-test-server $cat var/test-client-limited.data 
   ! ./bin/kinko-test-server $cat var/test-client.data 
 }
+
+it_handles_access_rights_in_subdirs() {
+  cat=$(which cat)
+  # ./bin/kinko-test-client $cat var/test-client-limited/data 
+  ./bin/kinko-test-client $cat var/test-client/data 
+  # ./bin/kinko-test-server $cat var/test-server-limited/data 
+  ./bin/kinko-test-server $cat var/test-server/data 
+  
+  # The client can access the server data
+  ./bin/kinko-test-client $cat var/test-server/data 
+  # ./bin/kinko-test-client $cat var/test-server-limited/data 
+  
+  # The server cannot access the client data
+  ! ./bin/kinko-test-server $cat var/test-client-limited/data 
+  ! ./bin/kinko-test-server $cat var/test-client/data 
+}

@@ -20,3 +20,11 @@ sudo chown kinko-test-server:kinko-test-server         var/test-server.data
 sudo chown kinko-test-server:kinko-test-server-limited var/test-server-limited.data
 sudo chown kinko-test-client:kinko-test-client         var/test-client.data
 sudo chown kinko-test-client:kinko-test-client-limited var/test-client-limited.data
+
+for f in test-server test-client ; do
+  mkdir -p var/$f
+  chmod 6770 var/$f
+  sudo chown kinko-$f:kinko-$f var/$f
+  echo "$f content"          > var/$f/data
+  echo sudo chown kinko-$f:kinko-$f var/$f
+done
