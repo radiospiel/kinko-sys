@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+users=$($0.$(uname))
+
+if [ -z "$1" ]; then
+  for f in  $users ; do
+    echo $f
+  done
+else
+  for user in $users ; do
+    if [[ "$user" == $1 ]] ; then
+        echo "$user"
+    fi
+  done
+fi

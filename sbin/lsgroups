@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+groups=$($0.$(uname))
+
+if [ -z "$1" ]; then
+  for f in  $groups ; do
+    echo $f
+  done
+else
+  for group in $groups ; do
+    if [[ "$group" == $1 ]] ; then
+        echo "$group"
+    fi
+  done
+fi

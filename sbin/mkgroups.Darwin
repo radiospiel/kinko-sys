@@ -1,6 +1,6 @@
 #!/bin/sh
-
-# mkgroups [  groupname groupname .. ]
+#
+# mkgroups groupname [ groupname .. ]
 #
 # create one or more groups
 

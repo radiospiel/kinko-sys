@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+dscacheutil -q group | grep name | sed 'sxname: xx'

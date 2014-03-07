@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "Going to remove the following user accounts: $@"
+echo "^C to cancel"
+read
+exec -a $0 $0.$(uname) "$@"

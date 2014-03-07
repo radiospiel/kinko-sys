@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# rmgroups [  groupname groupname .. ]
+#
+# delete one or more groups
+
+set -e
+
+while [ "$1" ]; do
+  GROUP=$1
+  shift
+  
+  # does the group exist already?
+  if dscacheutil -q group -a name $GROUP | grep -q . ; then
+    dscl . delete /Groups/$GROUP
+    echo "Removed group $GROUP" >&2
+  fi
+done

@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#
 # mkuser username [ group group .. ]
 #
 # create a user with one or more optional groups.
@@ -28,7 +28,7 @@ else
   dscl . create /Users/$USER UniqueID $USER_ID
   dscl . create /Users/$USER UserShell /bin/false
   dscl . create /Users/$USER PrimaryGroupID $GROUP_ID
-  dscl . create /Users/$USER NFSHomeDirectory `pwd`/apps/$USER_ID/var
+  dscl . create /Users/$USER NFSHomeDirectory `pwd`/apps/$USER/var
   echo "Created user $USER w/id $USER_ID, group $GROUP_ID" >&2
 fi
 
