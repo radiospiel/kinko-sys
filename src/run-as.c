@@ -218,7 +218,12 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	if(homedir) {
 		setenv("GEM_HOME", vstrcat(homedir, "/var/gems", 0), 1);
 		setenv("GEM_PATH", vstrcat(homedir, "/var/gems", 0), 1);
-		setenv("PATH",     vstrcat(homedir, "/var/gems/bin:", getenv("PATH"), 0), 1);
+		setenv("PATH",     vstrcat(
+								homedir, "/bin:", 
+								homedir, "/var/gems/bin:", 
+								getenv("PATH"), 
+								0), 
+							1);
 	}
 
 	unsetenv("RUBYLIB");
