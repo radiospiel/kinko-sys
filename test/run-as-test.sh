@@ -89,5 +89,5 @@ it_modifies_environment() {
 
   # note: pwd -P resolves symlinks
   homebase=$(cd .. && pwd -P)/apps
-  test "$homebase/kinko-test-client/var" = $(./bin/kinko-test-client $printenv HOME)
+  test "$homebase/kinko-test-client" = $(./bin/kinko-test-client $printenv HOME)
 }

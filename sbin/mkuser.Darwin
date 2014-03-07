@@ -28,7 +28,7 @@ else
   dscl . create /Users/$USER UniqueID $USER_ID
   dscl . create /Users/$USER UserShell /bin/false
   dscl . create /Users/$USER PrimaryGroupID $GROUP_ID
-  dscl . create /Users/$USER NFSHomeDirectory `pwd`/apps/$USER/var
+  dscl . create /Users/$USER NFSHomeDirectory `pwd -P`/apps/$USER
   echo "Created user $USER w/id $USER_ID, group $GROUP_ID" >&2
 fi
 
