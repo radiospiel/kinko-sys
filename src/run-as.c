@@ -64,20 +64,40 @@ static void usage(const char* arg0) {
 	exit(2);
 }
 
+/*
+ * pidfile: the pidfile will be cleaned up upon exit.
+ */
+static const char* pidfile = 0;
+static char keep_pidfile = 0;
+static void cleanup_pidfile_and_exit(signum) {
+	if(pidfile && !keep_pidfile)
+		unlink(pidfile);
+	exit(signum);
+}
+
 int main(int argc, char** argv) 
 {
-	const char* pidfile;
 	const char* arg0 = *argv;
 	
 	/*
 	 * Parse arguments.
 	 */
 	while(*++argv) {
-		if(!strcmp(*argv, "--pidfile") || !strcmp(*argv, "-pidfile")) {
+		if(!strcmp(*argv, "--pidfile")) {
 			pidfile = *++argv;
 			if(!pidfile) usage(arg0);
-			++argv;
+			continue;
 		}
+
+		if(!strcmp(*argv, "--keep-pidfile")) {
+			/*
+			 * The --keep-pidfile option is for testing only. It prevents the pidfile 
+			 * from being removed on exit.
+			 */
+			keep_pidfile = 1;
+			continue;
+		}
+
 		break;
 	}
 	
@@ -95,14 +115,72 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
+	/*
+	 * Run requested command.
+	 */
+	void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv);
+
+	if(!pidfile) {
+		execv_as_user(requested_user, *argv, argv);
+		return 1;	/* execv_as_user does not return. */
+	}
+
+	/*
+	 * open pidfile. We do this before we are forking because we want run-as to fail
+	 * when the pidfile is in a unaccessible location.
+	 */
+	FILE* pidout = fopen(pidfile, "w");
+	if(!pidout)
+		die(pidfile);
+
+	/*
+	 * fork. 
+	 */
+	pid_t child_pid = fork();
+	if(child_pid < 0)
+		die("fork");
+
+	if (child_pid == 0) {
+    	fclose(pidout);
+		execv_as_user(requested_user, *argv, argv);
+	}
+
+	/*
+	 * write pidfile.
+	 *
+	 * [todo] The pidfile is created by the executing user. Is this correct?
+	 */
+	fprintf(stderr, "pid (in %s): %d\n", pidfile, child_pid);
+	fprintf(pidout, "%d", child_pid);
+	fclose(pidout);
+
+	/*
+	 * register signal handlers to cleanup pidfile.
+	 */
+	signal(SIGINT, cleanup_pidfile_and_exit);
+	signal(SIGTERM, cleanup_pidfile_and_exit);
+
+	/* 
+	 * wait for child to exit, and store child's exit status 
+	 */
+	int status;
+	wait(&status); 
+	int exitstatus = WEXITSTATUS(status);
+
+	if(exitstatus != 0)
+		fprintf(stderr, "%s exited with error %d.\n", arg0, exitstatus);
+
+	cleanup_pidfile_and_exit(exitstatus);
+	return 0;
+}
+
+void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv) {
 	gid_t requested_gid = requested_user->pw_gid;
 	uid_t requested_uid = requested_user->pw_uid;
 	
 	/*
 	 * Switch the real user to the effective user
 	 */
-	// fprintf(stderr, "Switching away from %s\n", id());
-
 	if(initgroups(requested_user->pw_name, requested_gid)) die("initgroups");
 
 	if(setregid(requested_gid, requested_gid)) die("setregid");
@@ -113,10 +191,8 @@ int main(int argc, char** argv)
 	 */
 	setenv("TMPDIR", "/tmp", 1);
 	
-	execv(*argv, argv);
-	die(*argv);
-
-	return 0;
+	execv(arg0, argv);
+	die(arg0);
 }
 
 /* --- Helpers -------------------------------------------------------------- */

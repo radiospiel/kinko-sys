@@ -19,6 +19,17 @@ it_can_call_server_from_client() {
   test "$(bin/kinko-test-client bin/kinko-test-server $(which whoami))" = "kinko-test-server"
 }
 
+it_parses_pidfile() {
+  rm -f foo.pid
+  r=$(bin/kinko-test-client --pidfile foo.pid --keep-pidfile $(which echo) bar)
+  test "$r" == "bar"
+  test -f foo.pid
+
+  r=$(bin/kinko-test-client --pidfile foo.pid $(which echo) bar)
+  test "$r" == "bar"
+  ! test -f foo.pid
+}
+
 # as the resulting user and group is determined by the basename of the
 # executable a possible attack could be to just execute the binary
 # with ARG[0] set differently.
