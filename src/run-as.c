@@ -10,30 +10,6 @@
 
 void die(const char* what);
 
-#define LOG(x) errlog(#x, x)
-
-void errlog(const char* name, const char* x);
-const char* uname(int uid);
-const char* gname(int gid);
-const char* id();
-
-#if 0
-
-static int current_user_is_member_of_group(gid_t gid) {
-	int gids_count = checked(getgroups(0, 0));
-	gid_t gids[gids_count + 1];
-	gids[0] = getegid();
-	checked(getgroups(gids_count, gids+1));
-	gids_count++;
-
-	for(int i = 0; i < gids_count; ++i) {
-		if(gid == gids[i]) return 1;
-	}
-	return 0;
-}
-
-#endif
-
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
@@ -237,40 +213,6 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 }
 
 /* --- Helpers -------------------------------------------------------------- */
-
-const char* uname(int uid) {
-	struct passwd * entry = getpwuid(uid);
-	if(!entry)
-		die("getpwuid");
-
-	return entry->pw_name;
-}
-
-const char* gname(int gid) {
-	struct group * entry = getgrgid(gid);
-	if(!entry)
-		die("getuid");
-
-	return entry->gr_name;
-}
-
-const char* id() {
-	static char buf[PATH_MAX];
-
-	snprintf(buf, sizeof(buf), 
-		"uid/euid: %s/%s(%d/%d), gid/egid: %s/%s(%d/%d)",
-		uname(getuid()),	uname(geteuid()), 
-		getuid(),			geteuid(),
-		gname(getgid()),	gname(getegid()), 
-		getgid(),			getegid()
-	);
-
-	return buf;
-}
-
-void errlog(const char* name, const char* x) {
-	fprintf(stderr, "%s: %s\n", name, x ? x : "NULL");
-}
 
 void die(const char* what) {
 	perror(what);
