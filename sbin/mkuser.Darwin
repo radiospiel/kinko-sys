@@ -6,15 +6,28 @@
 
 set -e
 
+# -- parse arguments -----------------------------------------------------------
+
+function usage() {
+	echo "Usage: mkuser [ -h homedir ] user [ group group .. ]" >&2
+	exit 1
+}
+
+if [ "$1" == "-h" ]; then
+  shift
+  [ "$1" ] || usage
+
+  HOMEDIR="$1"
+  shift
+fi
+
+[ "$1" ] || usage
+
 USER=$1
 shift
 
-if [ -z "$USER" ]; then
-	echo "Usage: mkuser user [ group group .. ]" >&2
-	exit 1
-fi
+# -- create the user -----------------------------------------------------------
 
-# create the user
 if dscacheutil -q user -a name $USER | grep -q . ; then
   # echo "Skip creation of existing user $USER" >&2
   true
@@ -28,7 +41,11 @@ else
   dscl . create /Users/$USER UniqueID $USER_ID
   dscl . create /Users/$USER UserShell /bin/false
   dscl . create /Users/$USER PrimaryGroupID $GROUP_ID
-  dscl . create /Users/$USER NFSHomeDirectory `pwd -P`/apps/$USER
+
+  if [ "$HOMEDIR" ]; then
+    dscl . create /Users/$USER NFSHomeDirectory $HOMEDIR
+  fi
+
   echo "Created user $USER w/id $USER_ID, group $GROUP_ID" >&2
 fi
 

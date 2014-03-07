@@ -10,7 +10,7 @@ A shell script which creates one or more groups.
 
 ### mkuser
 
-    mkuser user [ group .. ]
+    mkuser [ -h homedir ] user [ group .. ]
 
 A shell script which creates one or more groups. 
 
