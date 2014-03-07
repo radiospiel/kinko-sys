@@ -86,6 +86,8 @@ it_modifies_environment() {
 
   test "/tmp" = $(./bin/kinko-test-client $printenv TMPDIR)
   test "kinko-test-client" = $(./bin/kinko-test-client $printenv USER)
-  homebase=$(cd .. && pwd)/apps
+
+  # note: pwd -P resolves symlinks
+  homebase=$(cd .. && pwd -P)/apps
   test "$homebase/kinko-test-client/var" = $(./bin/kinko-test-client $printenv HOME)
 }

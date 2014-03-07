@@ -222,6 +222,12 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	 * (re)set ruby environment.
 	 */
 	
+	if(homedir) {
+		if(chdir(homedir)) {
+			fprintf(stderr, "Cannot chdir into %s's homedir: %s\n", pw_name, homedir);
+		}
+	}
+	
 	execv(arg0, argv);
 	die(arg0);
 }
