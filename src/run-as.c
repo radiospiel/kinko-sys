@@ -224,7 +224,8 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	
 	if(homedir) {
 		if(chdir(homedir)) {
-			fprintf(stderr, "Cannot chdir into %s's homedir: %s\n", pw_name, homedir);
+			fprintf(stderr, "Cannot chdir into %s's homedir.\n", pw_name);
+			perror(homedir);
 		}
 	}
 	
