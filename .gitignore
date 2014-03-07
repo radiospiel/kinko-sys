@@ -1,3 +1,4 @@
 bin
 .users
 .DS_Store
+.test-accounts

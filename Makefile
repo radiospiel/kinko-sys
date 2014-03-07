@@ -1,24 +1,26 @@
-test: install
-	roundup test/*-test.sh
+default: compile test-accounts
+	cd test && ./setup.sh && roundup *-test.sh
 
-install: bin/run-as users Makefile
-	sudo install -o root -g kinko-test-server -m 6710 bin/run-as bin/kinko-test-server
-	sudo install -o root -g kinko-test-client -m 6710 bin/run-as bin/kinko-test-client
-
-clean:
-	sudo rm -rf bin/*
+compile: bin/run-as
 
 bin/run-as: src/run-as.c
 	mkdir -p bin
 	gcc -o $@ -Wall -Werror $< 
 
-users: .users
 
-.users: Makefile
+# -- accounts for tests -------------------------------------------------------
+
+test-accounts: .test-accounts
+
+.test-accounts: Makefile
 	sudo sbin/mkuser kinko-test-server
+	sudo sbin/mkuser kinko-test-server-limited
 	sudo sbin/mkuser kinko-test-client kinko-test-server
+	sudo sbin/mkuser kinko-test-client-limited kinko-test-server-limited
 	sudo sbin/mkuser $(shell whoami) \
 						kinko-test-client \
-						kinko-test-server
+						kinko-test-server \
+						kinko-test-client-limited \
+						kinko-test-server-limited
 
-	touch .users
+	touch $@
