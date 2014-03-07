@@ -2,8 +2,11 @@
 describe "test run-as wrapper"
 
 it_verifies_setup() {
-  test "$(echo $(groups kinko-test-server | tr ' ' "\n" | grep kinko | sort))" = "kinko-test-server"
-  test "$(echo $(groups kinko-test-client | tr ' ' "\n" | grep kinko | sort))" = "kinko-test-client kinko-test-server"
+  test "$(echo $(groups kinko-test-server | tr ' ' "\n" | grep kinko | sort))" = \
+    "kinko-test-server"
+  
+  test "$(echo $(groups kinko-test-client | tr ' ' "\n" | grep kinko | sort))" = \
+      "kinko-test-client kinko-test-server kinko-test-server-limited"
 }
 
 it_runs_directly() {
@@ -44,4 +47,20 @@ it_cannot_be_redirected_via_argv0() {
   )
 
   test "$res" = "kinko-test-client"
+}
+
+it_handles_access_rights() {
+  cat=$(which cat)
+  ./bin/kinko-test-client $cat var/test-client-limited.data 
+  ./bin/kinko-test-client $cat var/test-client.data 
+  ./bin/kinko-test-server $cat var/test-server-limited.data 
+  ./bin/kinko-test-server $cat var/test-server.data 
+
+  # The client can access the server data
+  ./bin/kinko-test-client $cat var/test-server.data 
+  ./bin/kinko-test-client $cat var/test-server-limited.data 
+
+  # The server cannot access the client data
+  ! ./bin/kinko-test-server $cat var/test-client-limited.data 
+  ! ./bin/kinko-test-server $cat var/test-client.data 
 }
