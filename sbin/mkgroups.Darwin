@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# mkgroups [  groupname groupname .. ]
+#
+# create one or more groups
+
+set -e
+
+GROUP_ID=$(dscacheutil -q group | grep gid: | awk -F : '{ print $2; }' | sort -n | tail -1)
+
+while [ "$1" ]; do
+  GROUP=$1
+  shift
+  
+  # does the group exist already?
+  if dscacheutil -q group -a name $GROUP | grep -q . ; then
+    # echo "Skip creation of existing group $GROUP" >&2
+    true
+  else
+    GROUP_ID=$(expr $GROUP_ID + 1)
+    dscl . create /Groups/$GROUP
+    dscl . create /Groups/$GROUP PrimaryGroupID $GROUP_ID
+    echo "Created group $GROUP w/id $GROUP_ID" >&2
+  fi
+done

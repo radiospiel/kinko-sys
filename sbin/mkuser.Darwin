@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# mkuser username [ group group .. ]
+#
+# create a user with one or more optional groups.
+
+set -e
+
+USER=$1
+shift
+
+if [ -z "$USER" ]; then
+	echo "Usage: mkuser user [ group group .. ]" >&2
+	exit 1
+fi
+
+# create the user
+if dscacheutil -q user -a name $USER | grep -q . ; then
+  # echo "Skip creation of existing user $USER" >&2
+  true
+else
+  $(dirname $0)/mkgroups $USER
+  GROUP_ID=$(dscacheutil -q group -a name $USER | grep gid: | awk -F : '{ print $2; }')
+  
+  USER_ID_MAX=$(dscacheutil -q user | grep uid: | awk -F : '{ print $2; }' | sort -n | tail -1)
+  USER_ID=$(expr $USER_ID_MAX + 1)
+  dscl . create /Users/$USER
+  dscl . create /Users/$USER UniqueID $USER_ID
+  dscl . create /Users/$USER UserShell /bin/false
+  dscl . create /Users/$USER PrimaryGroupID $GROUP_ID
+  dscl . create /Users/$USER NFSHomeDirectory `pwd`/apps/$USER_ID/var
+  echo "Created user $USER w/id $USER_ID, group $GROUP_ID" >&2
+fi
+
+if ! [ -z "$*" ] ; then
+  echo "Adding $USER to groups $@" >&2 
+
+  $(dirname $0)/mkgroups "$@"
+  while [ "$1" ]; do
+    GROUP=$1
+    shift
+    dscl . append /Groups/$GROUP GroupMembership $USER
+  done
+fi
