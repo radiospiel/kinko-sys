@@ -9,11 +9,11 @@ recompile:
 
 run-as: 
 	./run-as-setup.sh
-	roundup run-as-test.sh
+	./roundup run-as-test.sh
 
 access:
 	./access-setup.sh
-	roundup access-test.sh
+	./roundup access-test.sh
 	
 
 # -- accounts for tests -------------------------------------------------------
