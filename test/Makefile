@@ -1,21 +1,20 @@
 # The test Makefile
 
-# tests-access: recompile test-setup
-# 	roundup access-test.sh
-
-tests: test-setup
-	roundup run-as-test.sh
-	roundup access-test.sh
-
-test-setup: test-accounts
-	./setup.sh
-	./setup2.sh
+tests: recompile test-accounts run-as access
 
 recompile:
 	make -C .. compile
 
-all:
-	make -C ..
+# -- testcases ----------------------------------------------------------------
+
+run-as: 
+	./run-as-setup.sh
+	roundup run-as-test.sh
+
+access:
+	./access-setup.sh
+	roundup access-test.sh
+	
 
 # -- accounts for tests -------------------------------------------------------
 
