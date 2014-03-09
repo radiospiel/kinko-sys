@@ -22,19 +22,19 @@ all:
 test-accounts: .test-accounts
 
 .test-accounts: Makefile
-	sudo ../sbin/mkuser kinko-test-server
-	sudo ../sbin/mkuser kinko-test-server-limited
-	sudo ../sbin/mkuser kinko-test-client kinko-test-server kinko-test-server-limited
-	sudo ../sbin/mkuser kinko-test-client-limited kinko-test-server-limited
+	sudo ../sbin/mkuser kitest-server
+	sudo ../sbin/mkuser kitest-server-limited
+	sudo ../sbin/mkuser kitest-client kitest-server kitest-server-limited
+	sudo ../sbin/mkuser kitest-client-limited kitest-server-limited
 	sudo ../sbin/mkuser $(shell whoami) \
-						kinko-test-client \
-						kinko-test-server \
-						kinko-test-client-limited \
-						kinko-test-server-limited
+						kitest-client \
+						kitest-server \
+						kitest-client-limited \
+						kitest-server-limited
 
 	touch $@
 
 rm-accounts:
 	rm -f .test-accounts
-	sudo ../sbin/rmusers $(shell ../sbin/lsusers kinko-test-*)
-	sudo ../sbin/rmgroups $(shell ../sbin/lsgroups kinko-test-*)
+	sudo ../sbin/rmusers $(shell ../sbin/lsusers kitest-*)
+	sudo ../sbin/rmgroups $(shell ../sbin/lsgroups kitest-*)

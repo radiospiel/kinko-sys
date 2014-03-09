@@ -2,33 +2,33 @@
 describe "test run-as wrapper"
 
 it_verifies_setup() {
-  test "$(echo $(groups kinko-test-server | tr ' ' "\n" | grep kinko | sort))" = \
-    "kinko-test-server"
+  test "$(echo $(groups kitest-server | tr ' ' "\n" | grep kitest | sort))" = \
+    "kitest-server"
   
-  test "$(echo $(groups kinko-test-client | tr ' ' "\n" | grep kinko | sort))" = \
-      "kinko-test-client kinko-test-server kinko-test-server-limited"
+  test "$(echo $(groups kitest-client | tr ' ' "\n" | grep kitest | sort))" = \
+      "kitest-client kitest-server kitest-server-limited"
 }
 
 it_runs_directly() {
-  test "$(bin/kinko-test-server $(which whoami))" = "kinko-test-server"
-  test "$(bin/kinko-test-client $(which whoami))" = "kinko-test-client"
+  test "$(bin/kitest-server $(which whoami))" = "kitest-server"
+  test "$(bin/kitest-client $(which whoami))" = "kitest-client"
 }
 
 it_cannot_call_client_from_server() {
-  ! bin/kinko-test-server bin/kinko-test-client $(which whoami)
+  ! bin/kitest-server bin/kitest-client $(which whoami)
 }
 
 it_can_call_server_from_client() {
-  test "$(bin/kinko-test-client bin/kinko-test-server $(which whoami))" = "kinko-test-server"
+  test "$(bin/kitest-client bin/kitest-server $(which whoami))" = "kitest-server"
 }
 
 it_parses_pidfile() {
   rm -f foo.pid
-  r=$(bin/kinko-test-client --pidfile foo.pid --keep-pidfile $(which echo) bar)
+  r=$(bin/kitest-client --pidfile foo.pid --keep-pidfile $(which echo) bar)
   test "$r" == "bar"
   test -f foo.pid
 
-  r=$(bin/kinko-test-client --pidfile foo.pid $(which echo) bar)
+  r=$(bin/kitest-client --pidfile foo.pid $(which echo) bar)
   test "$r" == "bar"
   ! test -f foo.pid
 }
@@ -41,51 +41,51 @@ it_parses_pidfile() {
 it_cannot_be_redirected_via_argv0() {
   res=$(
     (
-    exec -a kinko-test-server bin/kinko-test-client $(which whoami)
+    exec -a kitest-server bin/kitest-client $(which whoami)
     ) &
     wait
   )
 
-  test "$res" = "kinko-test-client"
+  test "$res" = "kitest-client"
 }
 
 it_handles_access_rights() {
   cat=$(which cat)
-  ./bin/kinko-test-client $cat var/test-client-limited.data 
-  ./bin/kinko-test-client $cat var/test-client.data 
-  ./bin/kinko-test-server $cat var/test-server-limited.data 
-  ./bin/kinko-test-server $cat var/test-server.data 
+  ./bin/kitest-client $cat var/test-client-limited.data 
+  ./bin/kitest-client $cat var/test-client.data 
+  ./bin/kitest-server $cat var/test-server-limited.data 
+  ./bin/kitest-server $cat var/test-server.data 
 
   # The client can access the server data
-  ./bin/kinko-test-client $cat var/test-server.data 
-  ./bin/kinko-test-client $cat var/test-server-limited.data 
+  ./bin/kitest-client $cat var/test-server.data 
+  ./bin/kitest-client $cat var/test-server-limited.data 
 
   # The server cannot access the client data
-  ! ./bin/kinko-test-server $cat var/test-client-limited.data 
-  ! ./bin/kinko-test-server $cat var/test-client.data 
+  ! ./bin/kitest-server $cat var/test-client-limited.data 
+  ! ./bin/kitest-server $cat var/test-client.data 
 }
 
 it_handles_access_rights_in_subdirs() {
   cat=$(which cat)
-  # ./bin/kinko-test-client $cat var/test-client-limited/data 
-  ./bin/kinko-test-client $cat var/test-client/data 
-  # ./bin/kinko-test-server $cat var/test-server-limited/data 
-  ./bin/kinko-test-server $cat var/test-server/data 
+  # ./bin/kitest-client $cat var/test-client-limited/data 
+  ./bin/kitest-client $cat var/test-client/data 
+  # ./bin/kitest-server $cat var/test-server-limited/data 
+  ./bin/kitest-server $cat var/test-server/data 
   
   # The client can access the server data
-  ./bin/kinko-test-client $cat var/test-server/data 
-  # ./bin/kinko-test-client $cat var/test-server-limited/data 
+  ./bin/kitest-client $cat var/test-server/data 
+  # ./bin/kitest-client $cat var/test-server-limited/data 
   
   # The server cannot access the client data
-  ! ./bin/kinko-test-server $cat var/test-client-limited/data 
-  ! ./bin/kinko-test-server $cat var/test-client/data 
+  ! ./bin/kitest-server $cat var/test-client-limited/data 
+  ! ./bin/kitest-server $cat var/test-client/data 
 }
 
 it_modifies_environment() {
   printenv=$(which printenv)
 
-  test "/tmp" = $(./bin/kinko-test-client $printenv TMPDIR)
-  test "kinko-test-client" = $(./bin/kinko-test-client $printenv USER)
+  test "/tmp" = $(./bin/kitest-client $printenv TMPDIR)
+  test "kitest-client" = $(./bin/kitest-client $printenv USER)
 
-  test "$HOME" = $(./bin/kinko-test-client $printenv HOME)
+  test "$HOME" = $(./bin/kitest-client $printenv HOME)
 }
