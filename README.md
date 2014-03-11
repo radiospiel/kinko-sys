@@ -62,26 +62,3 @@ The PATH is set to include
 Note: The following is an example installation command:
 
     sudo install -o root -g kinko-test-server -m 4510 bin/run-as bin/kinko-test-server
-
-# run-as examples
-
-Consider the following scenario:
-
-## interfacing via scripts
-
-There is one application, which is managed by a `kinko-server` user. This application
-provides two public interfaces via scripts: `read-server` and `write-server`. 
-The `read-server` script reads the content of the server status, while the `write-server`
-script writes the server status.
-
-Only some users should be allowed to use `read-server`, and a different set of users
-should be allowed to use `write-server`.
-
-This scenario can be managed using the following implementation:
-
-1. create a script `kinko-read-server` with this content:
-
-        #!/bin/sh
-        exec kinko-server read-server
-    
-    and install it under the name 
