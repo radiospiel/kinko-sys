@@ -1,4 +1,4 @@
-# Some tools for the kinko base system
+> Some tools for the kinko base system.
 
 ## Account management
 
@@ -34,18 +34,35 @@ A shell script which lists all users, potentially filtered by a pattern.
 
     lsusers kinko-test-*
 
-## Account switching
+## Run an application
 
     run-as [ --pidfile path ] command ...
 
-The run-as binary is to be installed under a specific name, which must match
-the name of a user, and must be installed with 5710 access rights (`-rws--x---`)
-and owned by `root`, for example using install like this:
+The run-as binary is to be installed under a specific name, which 
 
-    sudo install -o root -g kinko-test-server -m 5710 bin/run-as bin/kinko-test-server
+- must match the name of an application (and, consequently, a user account),
+- must be installed with 5710 access rights (`-rws--x---`) and 
+- must be owned by `root`.
 
-The resulting command allows all members of the group *kinko-test-server* to run any
-command as the *kinko-test-server* user.
+The resulting command allows all members of the application group *kinko-test-server* 
+to run any command as the *kinko-test-server* user. It also prepares the process
+environment to give it a clean start; that includes:
+
+- default environment settings `TMPDIR`, `HOME`, `SHELL`, `LOGNAME`, `USER` and `USERNAME`
+- ruby specific environment settings `GEM_HOME`, `GEM_PATH`
+- jit specific environment settings `JIT_HOME`
+- jit specific environment settings `JIT_HOME`
+- kinko specific environment settings `KINKO_HOME`
+
+The PATH is set to include 
+
+- the kinko application's bin, var/bin, and var/gems/bin directories
+- kinko's bin, and sbin directories
+- a default set: `/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin`
+
+Note: The following is an example installation command:
+
+    sudo install -o root -g kinko-test-server -m 4510 bin/run-as bin/kinko-test-server
 
 # run-as examples
 
