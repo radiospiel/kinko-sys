@@ -309,6 +309,7 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	}
 	*envp++ = vstrcat("KINKO_ROOT=", kinko_root, 0);
 	path = vstrcat(kinko_root, "/sbin:", path, 0);
+	path = vstrcat(kinko_root, "/bin:", path, 0);
 	*envp++ = vstrcat("JIT_HOME=", homedir, "/var/jit", 0);
 
 	/*
