@@ -2,14 +2,14 @@
 
 SBIN=../../sbin
 
-tests: recompile accounts access
+default: recompile tests
 
 recompile:
 	make --no-print-directory -C ../.. compile
 
 # -- testcases ----------------------------------------------------------------
 
-access: accounts
+tests: accounts
 	./setup.sh
 	./../roundup test.sh
 
