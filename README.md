@@ -50,14 +50,13 @@ environment to give it a clean start; that includes:
 
 - default environment settings `TMPDIR`, `HOME`, `SHELL`, `LOGNAME`, `USER` and `USERNAME`
 - ruby specific environment settings `GEM_HOME`, `GEM_PATH`
-- jit specific environment settings `JIT_HOME`
-- jit specific environment settings `JIT_HOME`
+- jit specific environment settings `JIT_HOME` (See: [https://github.com/radiospiel/jit](https://github.com/radiospiel/jit))
 - kinko specific environment settings `KINKO_HOME`
 
 The PATH is set to include 
 
-- the kinko application's bin, var/bin, and var/gems/bin directories
-- kinko's bin, and sbin directories
+- the kinko application's *bin, var/bin,* and *var/gems/bin* directories
+- kinko's *bin* and *sbin* directories
 - a default set: `/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin`
 
 Note: The following is an example installation command:
