@@ -1,5 +1,10 @@
 #!/bin/sh
-echo "Going to remove the following groups: $@"
-echo "^C to cancel"
-read
+if [ "$1" == "-f" ]; then
+  shift
+else
+  echo "Going to remove the following groups: $@"
+  echo "^C to cancel"
+  read
+fi  
+
 exec -a $0 $0.$(uname) "$@"
