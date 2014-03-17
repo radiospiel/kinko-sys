@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# mkgroups groupname [ groupname .. ]
+#
+# create one or more groups
+
+set -e
+
+while [ "$1" ]; do
+  GROUP=$1
+  shift
+  
+  # does the group exist already?
+  if grep -q "$GROUP:" /etc/group  ; then
+    # echo "Skip creation of existing group $GROUP" >&2
+    true
+  else
+    /usr/sbin/addgroup $GROUP
+    echo "Created group $GROUP" >&2
+  fi
+done

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# rmusers [  name name .. ]
+#
+# delete one or more users
+
+set -e
+
+while [ "$1" ]; do
+  USER=$1
+  shift
+  
+  # does the group exist already?
+  if grep -q $USER: /etc/passwd ; then
+    /usr/sbin/deluser $USER
+    echo "Removed group $USER" >&2
+  fi
+done

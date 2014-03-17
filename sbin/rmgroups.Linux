@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# rmgroups [  groupname groupname .. ]
+#
+# delete one or more groups
+
+set -e
+
+while [ "$1" ]; do
+  GROUP=$1
+  shift
+  
+  # does the group exist already?
+  if grep -q $GROUP: /etc/group ; then
+    /usr/sbin/delgroup $GROUP
+    echo "Removed group $GROUP" >&2
+  fi
+done
