@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # mkuser username [ group group .. ]
 #

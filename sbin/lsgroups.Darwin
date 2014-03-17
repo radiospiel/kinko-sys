@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 dscacheutil -q group | grep name | sed 'sxname: xx'
