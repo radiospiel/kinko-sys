@@ -8,7 +8,15 @@
 #include <unistd.h>
 #include <signal.h>
 
+#ifdef __APPLE__
 #include <sys/syslimits.h>
+#endif
+
+#ifdef __linux__
+#include <linux/limits.h>
+#include <sys/wait.h>
+#endif
+
 #include <sys/stat.h>
 
 #include <pwd.h>
@@ -24,7 +32,7 @@
  * is no point in establishing a convoluted memory management thingy here.
  */
 
-void die(const char* what);
+void die(const char* what) __attribute__((noreturn)) ;
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
@@ -53,6 +61,8 @@ static const char* ExecutablePath() {
 		return path;
 
 	die("/proc/self/exe");
+
+	return 0;
 }
 
 #endif
