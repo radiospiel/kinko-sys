@@ -33,18 +33,20 @@ if grep -q "$USER:" /etc/passwd ; then
   # echo "Skip creation of existing user $USER" >&2
   true
 else
-  adduser=/usr/sbin/adduser
+  useradd=/usr/sbin/useradd
   if [ "$HOMEDIR" ]; then
-    adduser=$adduser --home $HOMEDIR
+    useradd=$useradd --home $HOMEDIR
   fi
 
-  $adduser --shell /bin/false \
-    --no-create-home \
-    --disabled-login \
+  # [todo] --disabled-login
+  $useradd --user-group \
+    --shell /bin/false \
+    -M \
     $USER
 fi
 
 if ! [ -z "$*" ] ; then
   echo "Adding $USER to groups $@" >&2 
+  $(dirname $0)/mkgroups $@
   /usr/sbin/usermod -a -G $(echo $@ | sed s=\\s=,=g) $USER
 fi
