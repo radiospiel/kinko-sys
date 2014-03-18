@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <assert.h>
 
 #ifdef __APPLE__
 #include <sys/syslimits.h>
@@ -32,7 +33,10 @@
  * is no point in establishing a convoluted memory management thingy here.
  */
 
+char* vstrcat(const char *first, ...);
 void die(const char* what) __attribute__((noreturn)) ;
+
+#define LOG(var) fprintf(stderr, #var ": %s\n", var)
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
@@ -145,25 +149,26 @@ int main(int argc, char** argv)
 	if(!*argv) usage(arg0);
 	
 	/*
-	 * which user and group is requested? The target user is defined
-	 * by the basename of the binary.
+	 * which user and group is requested? Which app is the target to run?
+	 * The target user is defined by the basename of the binary.
 	 */
-	const char* basename = Basename(ExecutablePath());
+	const char* username = Basename(ExecutablePath());
 	
-	struct passwd* requested_user = getpwnam(basename);
-	if(!requested_user) {
-		fprintf(stderr, "No such user: '%s'\n", basename);
+	const char* appname = 0 == strncmp(username, "kinko-", 6) ? username + 6 : 0;
+	if(!appname) {
+		fprintf(stderr, "Cannot determine appname from %s\n", username);
 		exit(1);
 	}
 
 	/*
 	 * Run requested command.
 	 */
-	void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv);
+	void execv_in_app(const char* username, const char* appname, const char* arg0, char** argv)
+			__attribute__((noreturn)) ;
 
 	if(!pidfile) {
-		execv_as_user(requested_user, *argv, argv);
-		return 1;	/* execv_as_user does not return. */
+		execv_in_app(username, appname, *argv, argv);
+		return 1;	/* execv_in_app does not return. */
 	}
 
 	/*
@@ -183,7 +188,7 @@ int main(int argc, char** argv)
 
 	if (child_pid == 0) {
     	fclose(pidout);
-		execv_as_user(requested_user, *argv, argv);
+		execv_in_app(username, appname, *argv, argv);
 	}
 
 	/*
@@ -217,15 +222,22 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv) {
-#if STRICT_MODE
+void switch_to_user(const char* username) {
+	if(!STRICT_MODE) return;
+
+	struct passwd* requested_user = getpwnam(username);
+	if(!requested_user) {
+		fprintf(stderr, "No such user: '%s'\n", username);
+		exit(1);
+	}
+
 	gid_t requested_gid = requested_user->pw_gid;
 	uid_t requested_uid = requested_user->pw_uid;
 	
 	// fprintf(stderr, "uid: %d\n", getuid());
 	// fprintf(stderr, "euid: %d\n", geteuid());
 	// fprintf(stderr, "requested_uid: %d\n", requested_uid);
-	
+
 	/*
 	 * Switch the real user to the effective user
 	 */
@@ -233,22 +245,28 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 
 	if(setregid(requested_gid, requested_gid)) die("setregid");
 	if(setreuid(requested_uid, requested_uid)) die("setreuid");
-#endif
+}
+
+void execv_in_app(const char* username, const char* appname, const char* arg0, char** argv) {
+	if(username)
+		switch_to_user(username);
+
+	const char* kinko_root = getenv("KINKO_ROOT");
+	if(!kinko_root) {
+		kinko_root = Cwd();
+		fprintf(stderr, "KINKO_ROOT environment setting missing; falling back to current dir: %s\n", kinko_root);
+	}
 	
 	/*
 	 * Fetch system settings to build environment for new process.
 	 */
-	const char* pw_name = requested_user->pw_name;
-	if(!*pw_name) pw_name = 0;
-	if(!pw_name) pw_name = "nobody";
+	const char* pw_shell = "/bin/false";
 
-	const char* pw_shell = requested_user->pw_shell;
-	if(!*pw_shell) pw_shell = 0;
-	if(!pw_shell) pw_shell = "/bin/false";
-
-	const char* homedir = requested_user->pw_dir;
-	if(!*homedir) homedir = 0;
-	if(!homedir) homedir = "/var/empty";
+	/*
+	 * The homedir is the root dir of the requested app.
+	 * If the username is "kinko-<name>", then the homedir is "<kinko_root>/apps/<name>"
+	 */
+	const char* homedir = vstrcat(kinko_root, "/apps/", appname, 0);
 	
 	/*
 	 * Clear environment. This implements a simple variant of sudo's env_reset
@@ -261,11 +279,6 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	static const int MAX_ENV_ENTRIES = 128;
 	char* env[MAX_ENV_ENTRIES];
 	char** envp = env;
-
-	/*
-	 * Note that vstrcat leaks memory, see comment above.
-	 */
-	char* vstrcat(const char *first, ...);
 
 	/*
 	 * get initial path.
@@ -315,11 +328,6 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	/*
 	 * set KINKO environment entries
 	 */
-	const char* kinko_root = getenv("KINKO_ROOT");
-	if(!kinko_root) {
-		kinko_root = Cwd();
-		fprintf(stderr, "KINKO_ROOT environment setting missing; falling back to current dir: %s\n", kinko_root);
-	}
 	*envp++ = vstrcat("KINKO_ROOT=", kinko_root, 0);
 	path = vstrcat(kinko_root, "/sbin:", path, 0);
 	path = vstrcat(kinko_root, "/bin:", path, 0);
@@ -333,9 +341,12 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	*envp++ = vstrcat("PATH=", path, 0);
 	*envp++ = vstrcat("HOME=", homedir, 0);
 	*envp++ = vstrcat("SHELL=", pw_shell, 0);
-	*envp++ = vstrcat("LOGNAME=", pw_name, 0);
-	*envp++ = vstrcat("USER=", pw_name, 0);
-	*envp++ = vstrcat("USERNAME=", pw_name, 0);
+
+#if STRICT_MODE
+	*envp++ = vstrcat("LOGNAME=", username, 0);
+	*envp++ = vstrcat("USER=", username, 0);
+	*envp++ = vstrcat("USERNAME=", username, 0);
+#endif
 
 	*envp = 0;
 
@@ -343,7 +354,7 @@ void execv_as_user(struct passwd* requested_user, const char* arg0, char** argv)
 	 * change into homedir
 	 */
 	if(chdir(homedir)) {
-		fprintf(stderr, "Cannot chdir into %s's homedir.\n", pw_name);
+		fprintf(stderr, "Cannot chdir into homedir %s\n", homedir);
 		perror(homedir);
 	}
 
