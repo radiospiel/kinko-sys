@@ -91,6 +91,9 @@ static char *Cwd() {
 
 static void usage(const char* arg0) {
 	fprintf(stderr, "%s [ --pidfile pidfile ] command\n", arg0);
+#if !STRICT_MODE
+	fprintf(stderr, "Note: %s was compiled in lax mode.\n", arg0);
+#endif	
 	exit(2);
 }
 
