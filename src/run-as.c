@@ -331,7 +331,7 @@ void execv_in_app(const char* username, const char* appname, const char* arg0, c
 	*envp++ = vstrcat("KINKO_ROOT=", kinko_root, 0);
 	path = vstrcat(kinko_root, "/sbin:", path, 0);
 	path = vstrcat(kinko_root, "/bin:", path, 0);
-	*envp++ = vstrcat("JIT_HOME=", homedir, "/var/jit", 0);
+	*envp++ = vstrcat("JIT_HOME=", kinko_root, "/var/jit", 0);
 
 	/*
 	 * set base entries
