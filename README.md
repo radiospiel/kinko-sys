@@ -1,4 +1,7 @@
 > Some tools for the kinko base system.
+> Forked because of some experiments. Those include up until now:
+> Added a clean directive to make; clean up test users/groups after tests(only enabled)
+> Updated C-Code(mostly cosmetic + optimized vstrcat)
 
 ## Account management
 

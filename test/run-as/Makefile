@@ -12,6 +12,7 @@ recompile:
 tests: accounts
 	./setup.sh
 	./../roundup test.sh
+	make rm-accounts
 
 # -- accounts for tests -------------------------------------------------------
 
