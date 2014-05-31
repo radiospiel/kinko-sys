@@ -8,14 +8,15 @@
 #include <unistd.h>
 #include <signal.h>
 #include <assert.h>
+#include <stdarg.h>
   
 #ifdef __APPLE__
-#include <sys/syslimits.h>
+    #include <sys/syslimits.h>
 #endif
   
 #ifdef __linux__
-#include <linux/limits.h>
-#include <sys/wait.h>
+    #include <linux/limits.h>
+    #include <sys/wait.h>
 #endif
   
 #include <sys/stat.h>
@@ -24,7 +25,7 @@
 #include <grp.h>
   
 #if !defined(STRICT_MODE)
-#define STRICT_MODE 1
+    #define STRICT_MODE 1
 #endif
   
 /*
@@ -86,7 +87,7 @@ static char *Realpath(const char *pathname) {
 static char *Cwd() {
     char buf[PATH_MAX+1];
     char* cwd = getcwd(buf, sizeof(buf));
-    if(!cwd) die("getcwd");
+    if(!cwd) die("getcwd did not work");
     return Realpath(cwd);
 };
   
@@ -104,6 +105,7 @@ static inline void usage(const char* arg0) {
 static const char* pidfile = 0;
 static char keep_pidfile = 0;
 static pid_t child_pid = 0;
+
 static inline void cleanup_pidfile_and_exit(signum) {
     /*
     * In the --pidfile case, the child must be terminated as well, when
@@ -138,7 +140,6 @@ int main(int argc, char** argv){
             keep_pidfile = 1;
             continue;
         }
-  
         break;
     }
   
@@ -159,8 +160,8 @@ int main(int argc, char** argv){
     /*
     * Run requested command.
     */
-    void execv_in_app(const char* username, const char* appname, const char* arg0, char** argv)
-__attribute__((noreturn));
+    void execv_in_app(const char* username, const char* appname, const char* arg0, char** argv  )
+    __attribute__((noreturn));
   
     if(!pidfile) {
         execv_in_app(username, appname, *argv, argv);
@@ -287,7 +288,7 @@ void execv_in_app(const char* username, const char* appname, const char* arg0, c
     /*
     * set ruby environment.
     *
-    * The following code should make --no-print-directory sure that the new user will have gems
+    * The following code should make sure that the new user will have gems
     * installed in a private location. Note that a proper ruby installation
     * must be installed system-wide; if nothing else works then in
     * /usr/local/bin.
@@ -371,8 +372,6 @@ static inline void die(const char* what) {
     perror(what);
     exit(1);
 }
-  
-#include <stdarg.h>
   
 char* vstrcat(const char *first, ...) {
     register size_t length;
