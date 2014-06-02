@@ -16,4 +16,5 @@ bin/run-asd: src/run-as.c
 	gcc -o $@ $(CFLAGS) $(OPT) $< 
 
 clean: 
+	make -C test clean
 	rm -rf bin
