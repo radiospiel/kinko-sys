@@ -12,6 +12,7 @@ recompile:
 tests: accounts
 	./setup.sh
 	./../roundup test.sh
+	make rm-accounts
 
 # -- accounts for tests -------------------------------------------------------
 
@@ -28,3 +29,6 @@ rm-accounts:
 	@ rm -f .accounts
 	@ sudo $(SBIN)/rmusers $(shell $(SBIN)/lsusers kitest-*)
 	@ sudo $(SBIN)/rmgroups $(shell $(SBIN)/lsgroups kitest-*)
+
+clean:
+	rm -rf bin
